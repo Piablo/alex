@@ -3,13 +3,15 @@ import axios from "axios";
 const state = {
   itemTypes: [],
   itemCatagories: [],
-  itemBrands: []
+  itemBrands: [],
+  itemModels: []
 };
 
 const getters = {
   allItemTypes: state => state.itemTypes,
   allItemCatagories: state => state.itemCatagories,
-  allItemBrands: state => state.itemBrands
+  allItemBrands: state => state.itemBrands,
+  allItemModels: state => state.itemModels
 };
 
 const actions = {
@@ -36,6 +38,14 @@ const actions = {
     commit("setItemBrands", response.data);
   },
 
+  async fetchItemModels({ commit }, userSelectedItemBrandId) {
+    const response = await axios.post(
+      "http://localhost:8081/api/get-item-models",
+      userSelectedItemBrandId
+    );
+    commit("setItemModels", response.data);
+  },
+
   async saveItemType({ commit }, payload) {
     const response = await axios.post(
       "http://localhost:8081/api/save-item-type",
@@ -58,6 +68,14 @@ const actions = {
       payload
     );
     commit("pushNewItemBrand", response.data);
+  },
+
+  async saveItemModel({ commit }, payload) {
+    const response = await axios.post(
+      "http://localhost:8081/api/save-item-model",
+      payload
+    );
+    commit("pushNewItemModel", response.data);
   }
 };
 const mutations = {
@@ -65,10 +83,12 @@ const mutations = {
   setItemCatagories: (state, itemCatagories) =>
     (state.itemCatagories = itemCatagories),
   setItemBrands: (state, itemBrands) => (state.itemBrands = itemBrands),
+  setItemModels: (state, itemModel) => (state.itemModels = itemModel),
   pushNewItemType: (state, itemType) => state.itemTypes.push(itemType),
   pushNewItemCatagory: (state, itemCatagory) =>
     state.itemCatagories.push(itemCatagory),
-  pushNewItemBrand: (state, itemBrand) => state.itemBrands.push(itemBrand)
+  pushNewItemBrand: (state, itemBrand) => state.itemBrands.push(itemBrand),
+  pushNewItemModel: (state, itemModel) => state.itemModels.push(itemModel)
 };
 
 export default {

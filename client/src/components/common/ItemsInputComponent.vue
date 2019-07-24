@@ -9,6 +9,9 @@
     <div v-if="showBrandsSelectComponent">
       <SelectAddComponent :props="brandSelectComponentProps"></SelectAddComponent>
     </div>
+    <div v-if="showModelSelectComponent">
+      <SelectAddComponent :props="modelSelectComponentProps"></SelectAddComponent>
+    </div>
   </div>
 </template>
 
@@ -34,29 +37,33 @@ export default {
       showTypeSelectComponent: false,
       showCatagoriesSelectComponent: false,
       showBrandsSelectComponent: false,
+      showModelSelectComponent: false,
 
       idOfSelectedItemType: null,
       idOfSelectedItemCatagory: null,
+      idOfSelectedItemBrand: null,
 
       typeSelectComponentProps: {
         label: "Select item type",
         name: "typeSelectComponentProps",
-        formInputs: ["dave", "is", "a", "Doosh"],
-        formHeader: "Add new item type",
         items: []
       },
 
       catagorySelectComponentProps: {
         label: "Select item catagory",
         name: "catagorySelectComponent",
-        formInputs: ["dave", "is", "a", "Doosh"],
         items: []
       },
 
       brandSelectComponentProps: {
         label: "Select item brand",
         name: "brandSelectComponent",
-        formInputs: ["dave", "is", "a", "Doosh"],
+        items: []
+      },
+
+      modelSelectComponentProps: {
+        label: "Select item model",
+        name: "modelSelectComponent",
         items: []
       }
     };
@@ -67,9 +74,11 @@ export default {
       "fetchItemTypes",
       "fetchItemCatagories",
       "fetchItemBrands",
+      "fetchItemModels",
       "saveItemType",
       "saveItemCatagory",
-      "saveItemBrand"
+      "saveItemBrand",
+      "saveItemModel"
     ]),
 
     sanitizeDataForTypeSelectComponent(data) {
@@ -108,6 +117,20 @@ export default {
         var item = {
           value: data[i].brandId,
           text: data[i].brand
+        };
+        returnValue.push(item);
+      }
+
+      return returnValue;
+    },
+
+    sanitizeDataForModelSelectComponent(data) {
+      var listLength = data.length;
+      var returnValue = [];
+      for (var i = 0; i < listLength; i++) {
+        var item = {
+          value: data[i].modelId,
+          text: data[i].model
         };
         returnValue.push(item);
       }
@@ -157,22 +180,45 @@ export default {
       this.setSelectionLevel(3);
     },
 
+    async saveItemModelToStore(data) {
+      this.setSelectionLevel(3);
+      var sanitizedData = SanitizeString.FirstToUpper(data);
+      var payload = {
+        brandId: this.idOfSelectedItemBrand,
+        model: sanitizedData
+      };
+      await this.saveItemModel(payload);
+      this.modelSelectComponentProps.items = this.sanitizeDataForModelSelectComponent(
+        this.allItemModels
+      );
+      this.setSelectionLevel(4);
+    },
+
     setSelectionLevel(selectionLevel) {
       if (selectionLevel === 1) {
         this.showTypeSelectComponent = false;
         this.showCatagoriesSelectComponent = false;
         this.showBrandsSelectComponent = false;
+        this.showModelSelectComponent = false;
 
         this.showTypeSelectComponent = true;
       } else if (selectionLevel === 2) {
         this.showBrandsSelectComponent = false;
+        this.showModelSelectComponent = false;
 
         this.showCatagoriesSelectComponent = true;
         this.showTypeSelectComponent = true;
       } else if (selectionLevel === 3) {
+        this.showModelSelectComponent = false;
+
         this.showCatagoriesSelectComponent = true;
         this.showTypeSelectComponent = true;
         this.showBrandsSelectComponent = true;
+      } else if (selectionLevel === 4) {
+        this.showCatagoriesSelectComponent = true;
+        this.showTypeSelectComponent = true;
+        this.showBrandsSelectComponent = true;
+        this.showModelSelectComponent = true;
       }
     },
 
@@ -204,10 +250,27 @@ export default {
         this.allItemBrands
       );
       this.setSelectionLevel(3);
+    },
+
+    async getItemModelBy(userSelectedItemBrand) {
+      var payload = {
+        brandId: userSelectedItemBrand
+      };
+
+      await this.fetchItemModels(payload);
+      this.modelSelectComponentProps.items = this.sanitizeDataForModelSelectComponent(
+        this.allItemModels
+      );
+      this.setSelectionLevel(4);
     }
   },
 
-  computed: mapGetters(["allItemTypes", "allItemCatagories", "allItemBrands"]),
+  computed: mapGetters([
+    "allItemTypes",
+    "allItemCatagories",
+    "allItemBrands",
+    "allItemModels"
+  ]),
 
   created() {
     bus.$on(this.typeSelectComponentProps.name + "FromChild", payload => {
@@ -233,10 +296,19 @@ export default {
 
     bus.$on(this.brandSelectComponentProps.name + "FromChild", payload => {
       if (payload.command === "Selection") {
-        //this.setSelectionLevel(2);
-        //this.getItemBrandBy(payload.data);
+        this.setSelectionLevel(3);
+        this.idOfSelectedItemBrand = payload.data;
+        this.getItemModelBy(payload.data);
       } else if (payload.command === "Saved") {
         this.saveItemBrandToStore(payload.data);
+      }
+    });
+
+    bus.$on(this.modelSelectComponentProps.name + "FromChild", payload => {
+      if (payload.command === "Selection") {
+        console.log("Show Save Button");
+      } else if (payload.command === "Saved") {
+        this.saveItemModelToStore(payload.data);
       }
     });
   },

@@ -11,13 +11,10 @@
         </div>
         <div v-if="showAddClientDetails">
           <AddClientDetailsComponent :props="addClientDetailsComponentProps"></AddClientDetailsComponent>
-          <ButtonComponent :props="saveButtonComponentProps"></ButtonComponent>
         </div>
         <div v-if="showAddItems">
           <ItemsInputComponent></ItemsInputComponent>
         </div>
-
-        <ButtonComponent :props="tempButtonProps"></ButtonComponent>
       </v-flex>
     </v-layout>
   </div>
@@ -49,11 +46,6 @@ export default {
       selectComponentItems: this.allTitles,
       showAddClientDetails: false,
       showAddItems: false,
-
-      tempButtonProps: {
-        name: "tempButton",
-        label: "Next"
-      },
 
       saveButtonComponentProps: {
         name: "saveButtonComponentProps",
@@ -105,10 +97,6 @@ export default {
     bus.$on(this.addClientDetailsComponentProps.name + "FromChild", client => {
       this.saveClient(client);
       this.showStageSelector(this.addUpliftmentState);
-    });
-
-    bus.$on(this.tempButtonProps.name + "FromChild", payload => {
-      this.showStageSelector("AddItems");
     });
 
     bus.$on(this.saveButtonComponentProps.name + "FromChild", payload => {

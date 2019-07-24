@@ -1,6 +1,6 @@
 <template>
   <div class="btn-backing-panel">
-    <v-btn @click="onClick" block>{{label}}</v-btn>
+    <v-btn @click="onClick" block :disabled="disabled">{{label}}</v-btn>
   </div>
 </template>
 
@@ -15,7 +15,8 @@ export default {
   data() {
     return {
       label: this.props.label,
-      name: this.props.name
+      name: this.props.name,
+      disabled: this.props.disabled
     };
   },
 
@@ -23,6 +24,11 @@ export default {
     onClick() {
       bus.$emit(this.name + "FromChild", true);
     }
+  },
+  created() {
+    bus.$on(this.name + "FromParent", disabled => {
+      this.disabled = disabled;
+    });
   }
 };
 </script>
